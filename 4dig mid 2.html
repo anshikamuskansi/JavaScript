@@ -1,0 +1,20 @@
+<html>
+<head><title>digits</title></head>
+<body>
+<form action="#">
+Enter a 4 digit no.
+<input type="text" id="n1"><br>
+Result:<b id="re"><br>
+<input type="submit" value="get value" onclick="add();">
+</form>
+</body>
+</html>
+<script>
+function add(){
+n1=document.getElementById('n1').value;
+n1=parseInt(n1);
+result=(n1%1000)/10;
+result=parseInt(result);
+document.getElementById('re').innerHTML=(result);
+}
+</script>
