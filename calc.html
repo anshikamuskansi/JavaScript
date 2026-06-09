@@ -99,3 +99,141 @@ document.getElementById("t1").value=a;
     </form>
 </body>
 </html>
+
+
+
+If AffordMed expects a Frontend Track solution, here is a production-style starter code you can use.
+
+1. logging_middleware/src/logger.js
+export const logger = (message, type = "INFO") => {
+  const log = {
+    timestamp: new Date().toISOString(),
+    type,
+    message,
+  };
+
+  console.log(log);
+};
+2. logging_middleware/src/middleware.js
+import { logger } from "./logger";
+
+export const apiMiddleware = async (apiCall) => {
+  try {
+    logger("API Request Started");
+
+    const response = await apiCall();
+
+    logger("API Request Successful");
+
+    return response;
+  } catch (error) {
+    logger(error.message, "ERROR");
+    throw error;
+  }
+};
+3. notification_app_fe/src/services/api.js
+import axios from "axios";
+
+const API = axios.create({
+  baseURL: "http://localhost:5000/api",
+});
+
+export default API;
+4. notification_app_fe/src/components/NotificationForm.jsx
+import { useState } from "react";
+
+function NotificationForm({ addNotification }) {
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!message.trim()) return;
+
+    addNotification(message);
+    setMessage("");
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Enter Notification"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+      />
+
+      <button type="submit">Send</button>
+    </form>
+  );
+}
+
+export default NotificationForm;
+5. notification_app_fe/src/components/NotificationList.jsx
+function NotificationList({ notifications, deleteNotification }) {
+  return (
+    <div>
+      {notifications.map((item) => (
+        <div key={item.id}>
+          <p>{item.message}</p>
+
+          <button onClick={() => deleteNotification(item.id)}>
+            Delete
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default NotificationList;
+6. notification_app_fe/src/App.jsx
+import { useState } from "react";
+import NotificationForm from "./components/NotificationForm";
+import NotificationList from "./components/NotificationList";
+
+function App() {
+  const [notifications, setNotifications] = useState([]);
+
+  const addNotification = (message) => {
+    const newNotification = {
+      id: Date.now(),
+      message,
+    };
+
+    setNotifications([...notifications, newNotification]);
+  };
+
+  const deleteNotification = (id) => {
+    setNotifications(
+      notifications.filter((item) => item.id !== id)
+    );
+  };
+
+  return (
+    <div>
+      <h1>Notification System</h1>
+
+      <NotificationForm
+        addNotification={addNotification}
+      />
+
+      <NotificationList
+        notifications={notifications}
+        deleteNotification={deleteNotification}
+      />
+    </div>
+  );
+}
+
+export default App;
+7. notification_app_fe/src/main.jsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
