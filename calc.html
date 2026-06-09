@@ -1,4 +1,197 @@
 
+api/notificationApi.js
+export const getNotifications = () => {
+  return JSON.parse(localStorage.getItem("notifications")) || [];
+};
+
+export const saveNotifications = (notifications) => {
+  localStorage.setItem(
+    "notifications",
+    JSON.stringify(notifications)
+  );
+};
+components/NotificationForm.jsx
+import { useState } from "react";
+
+function NotificationForm({ addNotification }) {
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!message.trim()) return;
+
+    addNotification(message);
+    setMessage("");
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Enter Notification"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+      />
+
+      <button type="submit">
+        Add
+      </button>
+    </form>
+  );
+}
+
+export default NotificationForm;
+components/NotificationCard.jsx
+function NotificationCard({ item, removeNotification }) {
+  return (
+    <div>
+      <p>{item.message}</p>
+
+      <button
+        onClick={() =>
+          removeNotification(item.id)
+        }
+      >
+        Delete
+      </button>
+    </div>
+  );
+}
+
+export default NotificationCard;
+hooks/useNotifications.js
+import { useState } from "react";
+
+export const useNotifications = () => {
+  const [notifications, setNotifications] =
+    useState([]);
+
+  return {
+    notifications,
+    setNotifications,
+  };
+};
+state/NotificationContext.jsx
+import {
+  createContext,
+  useContext,
+  useState,
+} from "react";
+
+const NotificationContext =
+  createContext();
+
+export const NotificationProvider = ({
+  children,
+}) => {
+  const [notifications, setNotifications] =
+    useState([]);
+
+  return (
+    <NotificationContext.Provider
+      value={{
+        notifications,
+        setNotifications,
+      }}
+    >
+      {children}
+    </NotificationContext.Provider>
+  );
+};
+
+export const useNotificationContext = () =>
+  useContext(NotificationContext);
+pages/Dashboard.jsx
+import NotificationForm from "../components/NotificationForm";
+import NotificationCard from "../components/NotificationCard";
+import { useNotificationContext } from "../state/NotificationContext";
+
+function Dashboard() {
+  const {
+    notifications,
+    setNotifications,
+  } = useNotificationContext();
+
+  const addNotification = (message) => {
+    setNotifications([
+      ...notifications,
+      {
+        id: Date.now(),
+        message,
+      },
+    ]);
+  };
+
+  const removeNotification = (id) => {
+    setNotifications(
+      notifications.filter(
+        (item) => item.id !== id
+      )
+    );
+  };
+
+  return (
+    <>
+      <h1>Notification Dashboard</h1>
+
+      <NotificationForm
+        addNotification={addNotification}
+      />
+
+      {notifications.map((item) => (
+        <NotificationCard
+          key={item.id}
+          item={item}
+          removeNotification={
+            removeNotification
+          }
+        />
+      ))}
+    </>
+  );
+}
+
+export default Dashboard;
+styles/dashboard.css
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+input {
+  padding: 8px;
+  margin-right: 10px;
+}
+
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+App.jsx
+import Dashboard from "./pages/Dashboard";
+
+function App() {
+  return <Dashboard />;
+}
+
+export default App;
+main.jsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import "./styles/dashboard.css";
+
+import { NotificationProvider }
+  from "./state/NotificationContext";
+
+ReactDOM.createRoot(
+  document.getElementById("root")
+).render(
+  <NotificationProvider>
+    <App />
+  </NotificationProvider>
+);
 <!DOCTYPE html>
 <html lang="en">
 <head>
